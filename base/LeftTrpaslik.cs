@@ -36,7 +36,7 @@ namespace Trpaslici
                 col = int.Parse(position[1]);
                 positionValue = input[row][col];
 
-                File.AppendAllText("output.txt", $"{position[0]}, {position[1]}\n");
+                File.AppendAllText("out/left_rotation_output.txt", $"{position[0]}, {position[1]}\n");
             }
         }
     }
