@@ -1,6 +1,9 @@
 using System;
 using System.Linq;
 using System.IO;
+using System.Threading;
+using System.Collections.Generic;
+using Trpaslici.Pathfind;
 
 namespace Trpaslici
 {
@@ -23,70 +26,94 @@ namespace Trpaslici
             );
         }
 
-        int FindShortestPath(string[] input, string[] position, string direction, int steps)
+
+        public Dictionary<string, List<string>> GenerateGraph(string[] input)
         {
-            int row = int.Parse(position[0]);
-            int col = int.Parse(position[1]);
+            List<string> nodes = new List<string>();
+            Dictionary<string, List<string>> graph = new Dictionary<string, List<string>>();
 
-            if (input[row][col] == 'F')
+            Dictionary<string, IPathfindingStrategy> strategies = new Dictionary<string, IPathfindingStrategy>
             {
-                return steps;
-            }
-
-            visited = visited.Append($"{row},{col}").ToArray();
-
-            int shortestPath = int.MaxValue;
-
-            if (isSafe(input, new[] { $"{row - 1}", $"{col}" }))
+                { "left", new LeftEdgeNodePathfinding() },
+                { "right", new RightEdgeNodePathfinding() },
+                { "top", new TopEdgeNodePathfinding() },
+                { "bottom", new BottomEdgeNodePathfinding() },
+                { "center", new CenterNodePathfinding() }
+            };
+            
+            for (int i = 0; i < input.Length; i++)
             {
-                int path = FindShortestPath(input, new[] { $"{row - 1}", $"{col}" }, "up", steps + 1);
-                if (path < shortestPath)
+                for (int j = 0; j < input[i].Length; j++)
                 {
-                    shortestPath = path;
+                    if (input[i][j] == 'S')
+                    {
+                        nodes.Add($"{i},{j}");
+                    }
+                    else if (input[i][j] == 'F')
+                    {
+                        nodes.Add($"{i},{j}");
+                    }
+                    else if (input[i][j] == ' ')
+                    {
+                        if ((i == 0 && j == 0) || (i == 0 && j == input[i].Length - 1) || (i == input.Length - 1 && j == 0) || (i == input.Length - 1 && j == input[i].Length - 1)) // corners
+                        {
+                            continue;
+                        }
+                        else if (i == 0)
+                        {
+                            strategies["top"].DetectEdges(input, new[] {$"{i}",$"{j}"}, nodes);
+                        }
+                        else if (i == input.Length - 1)
+                        {
+                            strategies["bottom"].DetectEdges(input, new[] {$"{i}", $"{j}"}, nodes);
+                        }
+                        else if (j == 0)
+                        {
+                            strategies["left"].DetectEdges(input, new[] {$"{i}", $"{j}"}, nodes);
+                        }
+                        else if (j == input[i].Length - 1)
+                        {
+                            strategies["right"].DetectEdges(input, new[] {$"{i}", $"{j}"}, nodes);
+                        }
+                        else
+                        {
+                            strategies["center"].DetectEdges(input, new[] {$"{i}", $"{j}"}, nodes);
+                        }
+                    }
                 }
             }
 
-            if (isSafe(input, new[] { $"{row}", $"{col + 1}" }))
+            foreach (string node in nodes)
             {
-                int path = FindShortestPath(input, new[] { $"{row}", $"{col + 1}" }, "right", steps + 1);
-                if (path < shortestPath)
+                Console.WriteLine(node);
+                graph.Add(node, new List<string>());
+
+                int row = int.Parse(node.Split(',')[0]);
+                int col = int.Parse(node.Split(',')[1]);
+
+                for (int i = 0; i < input.Length; i++)
                 {
-                    shortestPath = path;
+                    for (int j = 0; j < input[i].Length; j++)
+                    {
+                        if ((i == row || j == col) && nodes.Contains($"{i},{j}"))
+                        {
+                            graph[node].Add($"{i},{j}");
+                        }
+                    }
                 }
             }
 
-            if (isSafe(input, new[] { $"{row + 1}", $"{col}" }))
-            {
-                int path = FindShortestPath(input, new[] { $"{row + 1}", $"{col}" }, "down", steps + 1);
-                if (path < shortestPath)
-                {
-                    shortestPath = path;
-                }
-            }
-
-            if (isSafe(input, new[] { $"{row}", $"{col - 1}" }))
-            {
-                int path = FindShortestPath(input, new[] { $"{row}", $"{col - 1}" }, "left", steps + 1);
-                if (path < shortestPath)
-                {
-                    shortestPath = path;
-                }
-            }
-
-            visited = visited.Where(x => x != $"{row},{col}").ToArray();
-
-            return shortestPath;
+            return graph;
         }
 
         public override void Move(string[] input)
         {
-            string[] position = StartPosition(input).Split(',');
+            Dictionary<string, List<string>> graph = GenerateGraph(input);
 
-            visited = new string[0];
-
-            int shortestPath = FindShortestPath(input, position, "up", 0);
-
-            Console.WriteLine($"Shortest path: {shortestPath}");
+            foreach (string node in graph.Keys)
+            {
+                Console.WriteLine($"{node}: {string.Join(", ", graph[node])}");
+            }
         }
     }
 }

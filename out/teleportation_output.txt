@@ -1,1 +1,1 @@
-Teleportation time: 64497 ms
+Teleportation time: 50462 ms
