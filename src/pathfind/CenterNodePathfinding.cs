@@ -20,7 +20,6 @@ namespace Trpaslici.Pathfind
 
             if ((verticles.Count(x => x == ' ') >= 2) || verticles.Contains('F') || verticles.Contains('S'))
             {
-                Console.WriteLine($"{row},{col}");
                 graph.Add($"{row},{col}");
             }
         }

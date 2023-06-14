@@ -8,8 +8,6 @@ namespace Trpaslici.Pathfind
     {
         public void DetectEdges(string[] input, string[] position, List<string> graph)
         {
-            Console.WriteLine(position[0]);
-            Console.WriteLine(position[1]);
             int row = int.Parse(position[0]);
             int col = int.Parse(position[1]);
 

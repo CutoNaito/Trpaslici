@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Collections.Generic;
 using Trpaslici.Pathfind;
+using Trpaslici.Pathfind.Edges;
 
 namespace Trpaslici
 {
@@ -39,6 +40,14 @@ namespace Trpaslici
                 { "top", new TopEdgeNodePathfinding() },
                 { "bottom", new BottomEdgeNodePathfinding() },
                 { "center", new CenterNodePathfinding() }
+            };
+
+            Dictionary<string, IEdgeDetectionStrategy> edgeDetectionStrategies = new Dictionary<string, IEdgeDetectionStrategy>
+            {
+                { "left", new LeftDirectionDetectionStrategy() },
+                { "right", new RightDirectionDetectionStrategy() },
+                { "top", new UpDirectionDetectionStrategy() },
+                { "bottom", new DownDirectionDetectionStrategy() },
             };
             
             for (int i = 0; i < input.Length; i++)
@@ -85,21 +94,11 @@ namespace Trpaslici
 
             foreach (string node in nodes)
             {
-                Console.WriteLine(node);
                 graph.Add(node, new List<string>());
 
-                int row = int.Parse(node.Split(',')[0]);
-                int col = int.Parse(node.Split(',')[1]);
-
-                for (int i = 0; i < input.Length; i++)
+                foreach (string direction in edgeDetectionStrategies.Keys)
                 {
-                    for (int j = 0; j < input[i].Length; j++)
-                    {
-                        if ((i == row || j == col) && nodes.Contains($"{i},{j}"))
-                        {
-                            graph[node].Add($"{i},{j}");
-                        }
-                    }
+                    edgeDetectionStrategies[direction].DetectEdges(nodes, node.Split(','), input, graph);
                 }
             }
 
